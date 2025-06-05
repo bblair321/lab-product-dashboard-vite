@@ -1,13 +1,7 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import App from '../App'
-
-const sampleProducts = [
-  { id: 1, name: 'Laptop', price: '$999', inStock: true },
-  { id: 2, name: 'Phone', price: '$699', inStock: false },
-  { id: 3, name: 'Tablet', price: '$499', inStock: true },
-]
 
 test('renders product dashboard title', () => {
   render(<App />)
@@ -16,26 +10,27 @@ test('renders product dashboard title', () => {
 
 test('displays all products initially', () => {
   render(<App />)
-
-  sampleProducts.forEach((product) => {
-    expect(screen.getByText(product.name)).toBeInTheDocument()
-  })
+  expect(screen.getByText(/Keyboard/i)).toBeInTheDocument()
+  expect(screen.getByText(/Mouse/i)).toBeInTheDocument()
+  expect(screen.getByText(/Monitor/i)).toBeInTheDocument()
+  expect(screen.getByText(/USB Hub/i)).toBeInTheDocument()
 })
 
 test('applies conditional styling for out-of-stock products', () => {
   render(<App />)
-  const outOfStockProduct = screen.getByText(/Phone/i) // Make sure "Phone" exists in sampleProducts
-  expect(outOfStockProduct.closest('div')).toHaveClass('outOfStockClass')
+  const mouse = screen.getByText(/Mouse/i)
+  const card = mouse.closest('div')
+  expect(card).toHaveClass('out-of-stock')
 })
 
 test('removes product from the dashboard when "Remove" button is clicked', () => {
   render(<App />)
-  const removeButtons = screen.queryAllByText(/Remove/i)
 
-  expect(removeButtons.length).toBeGreaterThan(0) // Ensure buttons exist
+  const mouse = screen.getByText(/Mouse/i)
+  const card = mouse.closest('div')
+  const removeButton = within(card).getByRole('button', { name: /remove/i })
 
-  if (removeButtons.length > 0) {
-    fireEvent.click(removeButtons[0])
-    expect(removeButtons[0]).not.toBeInTheDocument() // Expect removal to work
-  }
+  fireEvent.click(removeButton)
+
+  expect(screen.queryByText(/Mouse/i)).not.toBeInTheDocument()
 })
